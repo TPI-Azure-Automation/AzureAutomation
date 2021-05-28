@@ -8,7 +8,7 @@
 #Variable for the creation of the devtest lab
 [string]$name = ''
 [string]$regionChoose = ''
-[string]$resourceGroup = ''
+$jsonPath = ".\01-Create-DevTest-Lab_Template.json"
 
 #Variable to show the user the correct regions
 $locationNE = 'North Europe'
@@ -60,34 +60,38 @@ $okName = $true;
 #Loop as long as $okName is not equal to false. If $okName is equal to false, it means that one of the answers has been chosen and so we go to the next step
 While($okName){
     #Reading the name entered by the user and store in $name
-    $name = Read-Host 'Enter the name of the new lab'
+    $name = Read-Host 'Enter the name of the new lab (ex. 159-GRE-300222)'
     #Check if $name value isn't "" or null
     if(-not [string]::IsNullOrEmpty($name)){
+        if($name -cmatch "[0-9]{3}-[A-Z]{3}-[0-9]{6}"){
         #Change of value in the variable $okName
         $okName = $false
+        }
     }
 }
 
-#Variable to test if one of the resource group isn't "" or null.
-$okResourceGroup = $true;
+#Test if the json file is in the same folder then the script
+if(Test-Path -Path $jsonPath){
 
-#Loop as long as $okResourceGroup is not equal to false. If $okResourceGroup is equal to false, it means that one of the answers has been chosen and so we go to the next step
-While($okResourceGroup){
-    #Reading the resource group entered by the user and store in $resourceGroup
-    $resourceGroup = Read-Host 'Enter the name of the resources group'
-    #Check if $name value isn't "" or null
-    if(-not [string]::IsNullOrEmpty($resourceGroup)){
-        #Change of value in the variable $okResourceGroup
-        $okResourceGroup = $false
+            #Connect Azure Account
+            Connect-AzAccount
+
+            #Create a new resource group with the same name and location then the lab
+            New-AzResourceGroup -Name $name -Location $regionChoose
+
+            #Create a new lab with the 3 parameters
+            New-AzResourceGroupDeployment -ResourceGroupName $name -TemplateFile $jsonPath -regionId $regionChoose -nameFromTemplate $name
+   
+            #Notification to the user that the DevTest Lab has been created 
+            Write-Host 'You have just created the lab '$name' in the region '$regionChoose' all in the resource group '$name' !'
+
+   }else{
+
+     #Notification to the user that the json file is not at the same folder then the script 
+     Write-Host 'Please copy the json file to the same folder as the script and run the script again'
+
     }
-}
 
-#Connect Azure Account
-Connect-AzAccount
 
-#Create a new lab with the 3 parameters
-New-AzResourceGroupDeployment -ResourceGroupName $resourceGroup -TemplateFile .\01-Create-DevTest-Lab_Template.json -regionId $regionChoose -nameFromTemplate $name
 
-#Notification to the user that the DevTest Lab has been created 
-Write-Host 'Vous venez de créer le lab '$name' dans la region '$regionChoose' le tout dans le resource group '$resourceGroup' !'
 pause
