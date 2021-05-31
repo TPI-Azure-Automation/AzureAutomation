@@ -80,7 +80,7 @@ if(Test-Path -Path $jsonPath){
             New-AzResourceGroup -Name $name -Location $regionChoose
 
             #Create a new lab with the 3 parameters
-            New-AzResourceGroupDeployment -ResourceGroupName $name -TemplateFile $jsonPath -regionId $regionChoose -nameFromTemplate $name
+            New-AzResourceGroupDeployment -ResourceGroupName $name -TemplateFile $jsonPath -regionId $regionChoose -nameFromTemplate $name -Verbose
    
             #Notification to the user that the DevTest Lab has been created 
             Write-Host 'You have just created the lab '$name' in the region '$regionChoose' all in the resource group '$name' !'
