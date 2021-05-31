@@ -5,6 +5,7 @@
 # Author: Arnaud Kolly / KollyA05@studentfr.ch
 ############################################################################################################################
 
+
 #Variables for inviting apprentices and giving them permissions
 $messageInfo = New-Object Microsoft.Open.MSGraph.Model.InvitedUserMessageInfo
 $message = ''
@@ -39,23 +40,43 @@ Function Search-GAL {
 		{
 			#Getting user
 			$user = $member.GetExchangeUser()
+
 			#Displaying the user's Email Address on the Console
 			write-host ($user.PrimarySMTPAddress)
+
 			#Define the message that will be included in the invitation
 			$messageInfo.customizedMessageBody = $message
+
 			#Creation of the user in AzureAD and sending of an invitation by email
-			New-AzureADMSInvitation -InvitedUserEmailAddress $user.PrimarySMTPAddress -SendInvitationMessage $True -InviteRedirectUrl "https://portal.azure.com" -InvitedUserMessageInfo $messageInfo
-			#Get the user created using his email address
-			$adObject = Get-AzADUser -Mail $user.PrimarySMTPAddress
+			New-AzureADMSInvitation -InvitedUserEmailAddress $user.PrimarySMTPAddress -SendInvitationMessage $True -InviteRedirectUrl "https://portal.azure.com" -InvitedUserMessageInfo $messageInfo -Verbose	
+
+			#Variable to test if the user id isn't "" or null
+			$okAdd = $true
+			
+            #Loop as long as $okAdd is not equal to false. If $okAdd is equal to false, it means that the user id isn't null or empty and so we go to the next step
+			While($okAdd){
+                #Get the user created using his email address
+			    $adObject = Get-AzADUser -Mail $user.PrimarySMTPAddress
+                write-host "adObject "+$adObject
+				#Check if $adObject value isn't "" or null
+				if($adObject -ne $null){
+                    write-host "adObject plein "+$adObject
+					#Change of value in the variable $okAdd
+					$okAdd = $false
+				}
+			}
+
 			#Defining the path to the laboratory 
-			$labId = ('subscriptions/' + $subscriptionId + '/resourceGroups/' + $labResourceGroup + '/providers/Microsoft.DevTestLab/labs/' + $labName)
+			$labId = ('/subscriptions/' + $subscriptionId + '/resourceGroups/' + $labResourceGroup + '/providers/Microsoft.DevTestLab/labs/' + $labName)
+
 			#Add the DevTest Labs User permission to the selected lab
-			New-AzRoleAssignment -ObjectId $adObject.Id -RoleDefinitionName 'DevTest Labs User' -Scope $labId
+			New-AzRoleAssignment -ObjectId $adObject.Id -RoleDefinitionName 'DevTest Labs User' -Scope $labId -Verbose
 		}
 }
 
-#Variable to test if the number of the class isn't "" or null and for check if it's a number.
+#Variable to test if the number of the class isn't "" or null and for check if it's a number
 $okNumClasse = $true
+
 #Loop as long as $okNumClasse is not equal to false. If $okNumClasse is equal to false, it means that the number of class is ok and so we go to the next step
 While($okNumClasse){
 	#Reading the number entered by the user and store in $numClasse
@@ -65,15 +86,16 @@ While($okNumClasse){
 		#Check if $numClasse is a 6-digit sequence
 		if($numClasse -cmatch "[0-9]{6}"){
 			#Change the value of $nameClasse with the $numClasse
-			$nameClasse = 'EMF Students CL EMF_'$numClasse
+			$nameClasse = 'EMF Students CL EMF_'+$numClasse
 			#Change of value in the variable $okNumClasse
 			$okNumClasse = $false
 		}
 	}
 }
 
-#Variable to test if the text of the class isn't "" or null.
+#Variable to test if the text of the class isn't "" or null
 $okMessage = $true
+
 #Loop as long as $okMessage is not equal to false. If $okMessage is equal to false, it means that the text is ok and so we go to the next step
 While($okMessage){
 	#Reading the text entered by the user and store in $message
@@ -83,11 +105,11 @@ While($okMessage){
         #Change of value in the variable $okMessage
         $okMessage = $false
         }
-    }
 }
 
-#Variable to test if the text of the class isn't "" or null.
+#Variable to test if the text of the class isn't "" or null
 $okLabName = $true
+
 #Loop as long as $okLabName is not equal to false. If $okLabName is equal to false, it means that the text is ok and so we go to the next step
 While($okLabName){
 	#Reading the text entered by the user and store in $labName
@@ -95,12 +117,13 @@ While($okLabName){
 	#Check if $labName value isn't "" or null
 	if(-not [string]::IsNullOrEmpty($labName)){
 		#Add the name of the lab in the variable $labResourceGroup
-		$labResourceGroup = $labName
+		$labResourceGroup += $labName
         #Change of value in the variable $okLabName
         $okLabName = $false
         }
-    }
 }
 
 #Start the Search-GAL function and send invitations
 Search-GAL $nameClasse
+
+pause
