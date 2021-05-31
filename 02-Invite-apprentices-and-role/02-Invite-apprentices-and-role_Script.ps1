@@ -5,7 +5,6 @@
 # Author: Arnaud Kolly / KollyA05@studentfr.ch
 ############################################################################################################################
 
-
 #Variables for inviting apprentices and giving them permissions
 $messageInfo = New-Object Microsoft.Open.MSGraph.Model.InvitedUserMessageInfo
 $message = ''
