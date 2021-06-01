@@ -5,6 +5,11 @@
 # Author: Arnaud Kolly / KollyA05@studentfr.ch
 ############################################################################################################################
 
+#Connect Az Account
+Connect-AzAccount
+#Connect AzureAD Account
+Connect-AzureAD -TenantId "34bb6ca0-854e-4d46-96fa-204df387d876"
+ 
 #Variables for inviting apprentices and giving them permissions
 $messageInfo = New-Object Microsoft.Open.MSGraph.Model.InvitedUserMessageInfo
 $message = ''
@@ -13,9 +18,6 @@ $nameClasse = ''
 $subscriptionId = '9d1efdf8-d1b9-4e6b-be5e-c41b4fc12361'
 $labResourceGroup = ''
 $labName = ''
-
-#Connect AzureAD Account
-Connect-AzureAD -TenantId "34bb6ca0-854e-4d46-96fa-204df387d876"
 
 #Function to retrieve the email addresses of the trainees in the class, send them an invitation and give them permissions
 Function Search-GAL {
@@ -47,7 +49,7 @@ Function Search-GAL {
 			$messageInfo.customizedMessageBody = $message
 
 			#Creation of the user in AzureAD and sending of an invitation by email
-			New-AzureADMSInvitation -InvitedUserEmailAddress $user.PrimarySMTPAddress -SendInvitationMessage $True -InviteRedirectUrl "https://portal.azure.com" -InvitedUserMessageInfo $messageInfo -Verbose	
+			New-AzureADMSInvitation -InvitedUserEmailAddress $user.PrimarySMTPAddress -SendInvitationMessage $False -InviteRedirectUrl "https://portal.azure.com" -InvitedUserMessageInfo $messageInfo -Verbose	
 
 			#Variable to test if the user id isn't "" or null
 			$okAdd = $true
@@ -115,11 +117,14 @@ While($okLabName){
 	$labName = Read-Host 'Entrer le nom du laboratoire'
 	#Check if $labName value isn't "" or null
 	if(-not [string]::IsNullOrEmpty($labName)){
+           #Check if $labName contains 3 numbers-3 capital letters-6 numbers
+           if($labName -cmatch "[0-9]{3}-[A-Z]{3}-[0-9]{6}"){
 		#Add the name of the lab in the variable $labResourceGroup
 		$labResourceGroup += $labName
         #Change of value in the variable $okLabName
         $okLabName = $false
-        }
+            }
+     }
 }
 
 #Start the Search-GAL function and send invitations
