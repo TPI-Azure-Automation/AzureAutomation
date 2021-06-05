@@ -5,6 +5,46 @@
 # Author: Arnaud Kolly / KollyA05@studentfr.ch
 ###################################################################################################################################################
 
+#Information for the user
+Write-Host "Installation of modules"
+
+#Get script path
+$path = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
+
+#Run PowerShell as admin
+Function is-admin ()
+{
+    $user = [security.principal.windowsidentity]::getcurrent()
+    $role = new-object security.principal.windowsprincipal $user
+    $role.isinrole( [security.principal.windowsbuiltinrole]::administrator )
+}
+ 
+if (!(is-admin))
+{
+    $args = $myinvocation.mycommand.definition
+    start-process powershell -argumentlist $args -verb 'runas'
+    exit
+}
+
+#Change security protocole
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+#Install NuGet package
+Install-PackageProvider -Name NuGet -Force -Verbose
+#Install Az module
+Install-Module -Name Az -Verbose
+
+#Change folder to script path
+cd $path
+
+#Information for the user
+Write-Host "If you have any errors in the following script, close it and reboot your machine to apply the installation of the modules."
+
+#Import the installed modules
+Import-Module -Name Az
+
+#Confirmation that the user as read the information
+pause
+
 #Variable for the creation of the devtest lab
 [string]$name = ''
 [string]$regionChoose = ''
@@ -63,6 +103,7 @@ While($okName){
     $name = Read-Host 'Enter the name of the new lab (ex. 159-GRE-300222)'
     #Check if $name value isn't "" or null
     if(-not [string]::IsNullOrEmpty($name)){
+		#Check if $name respect the pattern
         if($name -cmatch "[0-9]{3}-[A-Z]{3}-[0-9]{6}"){
         #Change of value in the variable $okName
         $okName = $false
@@ -91,7 +132,5 @@ if(Test-Path -Path $jsonPath){
      Write-Host 'Please copy the json file to the same folder as the script and run the script again'
 
     }
-
-
-
+#Confirmation that the user as read the information
 pause

@@ -5,6 +5,49 @@
 # Author: Arnaud Kolly / KollyA05@studentfr.ch
 ############################################################################################################################
 
+#Information for the user
+Write-Host "Installation of modules"
+
+#Get script path
+$path = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
+
+#Run PowerShell as admin
+Function is-admin ()
+{
+    $user = [security.principal.windowsidentity]::getcurrent()
+    $role = new-object security.principal.windowsprincipal $user
+    $role.isinrole( [security.principal.windowsbuiltinrole]::administrator )
+}
+ 
+if (!(is-admin))
+{
+    $args = $myinvocation.mycommand.definition
+    start-process powershell -argumentlist $args -verb 'runas'
+    exit
+}
+
+#Change security protocole
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+#Install NuGet package
+Install-PackageProvider -Name NuGet -Force -Verbose
+#Install Az module
+Install-Module -Name Az -Verbose
+#Install AzureAD module
+Install-Module -Name AzureAD -Verbose
+
+#Change folder to script path
+cd $path
+
+#Information for the user
+Write-Host "If you have any errors in the following script, close it and reboot your machine to apply the installation of the modules."
+
+#Import the installed modules
+Import-Module -Name Az
+Import-Module -Name AzureAD
+
+#Confirmation that the user as read the information
+pause
+
 #Connect Az Account
 Connect-AzAccount
 #Connect AzureAD Account
@@ -130,4 +173,5 @@ While($okLabName){
 #Start the Search-GAL function and send invitations
 Search-GAL $nameClasse
 
+#Confirmation that the user as read the information
 pause
