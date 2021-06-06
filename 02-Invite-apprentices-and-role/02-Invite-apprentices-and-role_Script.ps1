@@ -41,10 +41,6 @@ cd $path
 #Information for the user
 Write-Host "If you have any errors in the following script, close it and reboot your machine to apply the installation of the modules."
 
-#Import the installed modules
-Import-Module -Name Az
-Import-Module -Name AzureAD
-
 #Confirmation that the user as read the information
 pause
 
